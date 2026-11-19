@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fredoka:wght@600;700&family=Indie+Flower&family=Pacifico&family=Quicksand:wght@700&family=Sacramento&display=swap" rel="stylesheet">
 
   <style>
     * {
@@ -48,7 +48,7 @@
       cursor: crosshair;
     }
 
-    /* Top Bar: YouTube Music + Theme + Proposal Trigger */
+    /* Top Bar */
     .top-bar {
       position: fixed;
       top: 10px;
@@ -58,7 +58,7 @@
       display: flex;
       gap: 6px;
       align-items: center;
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       padding: 6px 10px;
       border-radius: 999px;
@@ -107,7 +107,7 @@
       50% { transform: scale(1.1); }
     }
 
-    /* Hidden/Mini YouTube Player */
+    /* Mini YouTube Player */
     #yt-player-wrap {
       position: fixed;
       top: 56px;
@@ -122,7 +122,7 @@
       display: none;
     }
 
-    /* Scrapbook Items Layer */
+    /* Scrapbook Items Layer - PURE FLOATING TEXT (NO BOXES) */
     #scrapbook-layer {
       position: fixed;
       inset: 0;
@@ -134,11 +134,15 @@
       position: absolute;
       transform: translate(-50%, -50%);
       cursor: grab;
-      padding: 8px 14px;
-      border-radius: 18px;
-      max-width: 240px;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 4px;
+      max-width: 82vw;
+      text-align: center;
+      line-height: 1.15;
       word-wrap: break-word;
-      box-shadow: 0 8px 20px rgba(136, 14, 79, 0.16);
+      filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.95)) drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
       animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
       touch-action: none;
     }
@@ -149,19 +153,9 @@
     }
 
     .daze-item.sticker-only {
-      background: transparent !important;
-      box-shadow: none !important;
-      font-size: 46px;
+      font-size: 48px;
       padding: 0;
-    }
-
-    .sender-tag {
-      font-size: 9px;
-      font-weight: 800;
-      opacity: 0.75;
-      display: block;
-      margin-bottom: 2px;
-      text-transform: uppercase;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
     }
 
     /* Bottom Daze Creative Toolbar */
@@ -283,27 +277,28 @@
       background: linear-gradient(135deg, #ff4081, #c2185b);
       color: #fff;
       border: none;
-      padding: 12px 28px;
+      padding: 12px 24px;
       border-radius: 999px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(233, 30, 99, 0.4);
     }
+    .yes-btn:active { transform: scale(0.94); }
 
     /* Name Login Screen */
     #login-screen {
       position: fixed;
       inset: 0;
       background: linear-gradient(135deg, #ffd6eb, #e8d5ff);
-      z-index: 200;
+      z-index: 9999;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
     .login-box {
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.96);
       padding: 26px 22px;
       border-radius: 28px;
       max-width: 340px;
@@ -322,8 +317,8 @@
       <h2 style="color: #d81b60; margin-bottom: 6px;">Our 1-Month Daze Space</h2>
       <p style="font-size: 13px; color: #880e4f; font-weight: 700; margin-bottom: 16px;">Who is entering our secret canvas?</p>
       <div style="display: flex; gap: 10px; justify-content: center;">
-        <button class="yes-btn" onclick="enterRoom('Sumit 👑')">Sumit 👑</button>
-        <button class="yes-btn" style="background: linear-gradient(135deg, #ab47bc, #7b1fa2);" onclick="enterRoom('Rupsana Jii 🧿')">Rupsana Jii 🧿</button>
+        <button type="button" class="yes-btn" onclick="enterRoom('Sumit 👑')">Sumit 👑</button>
+        <button type="button" class="yes-btn" style="background: linear-gradient(135deg, #ab47bc, #7b1fa2);" onclick="enterRoom('Rupsana Jii 🧿')">Rupsana Jii 🧿</button>
       </div>
     </div>
   </div>
@@ -334,9 +329,9 @@
   <!-- Top Bar: YouTube DJ & Special Proposal Button -->
   <div class="top-bar">
     <input type="text" id="yt-url" class="yt-input" placeholder="Paste YouTube song link here..." />
-    <button class="icon-btn" onclick="setYoutubeSong()" title="Play Song">▶</button>
-    <button class="icon-btn" style="background:#ab47bc;" onclick="cycleBg()" title="Change Vibe">🎨</button>
-    <button class="icon-btn ring-btn" onclick="triggerProposal()" title="Special Surprise">💍</button>
+    <button type="button" class="icon-btn" onclick="setYoutubeSong()" title="Play Song">▶</button>
+    <button type="button" class="icon-btn" style="background:#ab47bc;" onclick="cycleBg()" title="Change Vibe">🎨</button>
+    <button type="button" class="icon-btn ring-btn" onclick="triggerProposal()" title="Special Surprise">💍</button>
   </div>
 
   <!-- Mini YouTube Player -->
@@ -365,15 +360,14 @@
     </div>
 
     <div class="quick-tools">
-      <button class="tool-pill" onclick="toggleStickers()">✨ Stickers</button>
-      <button class="tool-pill" id="draw-btn" onclick="toggleDraw()">🖍️ Doodle</button>
-      <button class="tool-pill" onclick="cycleStyle()">🔤 Font/Color</button>
-      <button class="tool-pill" onclick="clearBoard()">🧹 Clear</button>
+      <button type="button" class="tool-pill" onclick="toggleStickers()">✨ Stickers</button>
+      <button type="button" class="tool-pill" id="draw-btn" onclick="toggleDraw()">🖍️ Doodle</button>
+      <button type="button" class="tool-pill" onclick="clearBoard()">🧹 Clear</button>
     </div>
 
     <div class="input-row">
-      <input type="text" id="msg-input" class="msg-input" placeholder="Write & drag anywhere on screen..." onkeypress="if(event.key==='Enter') sendDazeText()" />
-      <button class="icon-btn" onclick="sendDazeText()">💌</button>
+      <input type="text" id="msg-input" class="msg-input" placeholder="Type & send cute floating text..." onkeypress="if(event.key==='Enter') sendDazeText()" />
+      <button type="button" class="icon-btn" onclick="sendDazeText()">💌</button>
     </div>
   </div>
 
@@ -386,34 +380,34 @@
         One whole month with you feels like the best blessing of my life. Instagram chat wasn't enough to show how much I adore you—so I built our own world.<br><br>
         Rupsana Jii, will you be mine all over again for month 2, year 1, and forever together? 🌷🫀
       </div>
-      <button class="yes-btn" onclick="acceptProposal()">YES, FOREVER & ALWAYS! 💍💋</button>
+      <button type="button" class="yes-btn" onclick="acceptProposal()">YES, FOREVER & ALWAYS! 💍💋</button>
     </div>
   </div>
 
-  <!-- Firebase SDK for Live Two-Way Sync -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
+  <!-- Core UI Functions -->
   <script>
-    // PASTE YOUR FIREBASE DATABASE URL BELOW:
-    const firebaseConfig = {
-      databaseURL: "https://rupsanajii-default-rtdb.firebaseio.com/"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
     let currentUser = "Sumit 👑";
-    let styleIndex = 0;
     let bgIndex = 0;
     let isDrawing = false;
+    let db = null;
 
-    const styles = [
-      { bg: "#ffffff", color: "#d81b60", font: "'Quicksand', sans-serif" },
-      { bg: "#ff4081", color: "#ffffff", font: "'Caveat', cursive" },
-      { bg: "#fff9c4", color: "#5d4037", font: "'Dancing Script', cursive" },
-      { bg: "#f3e5f5", color: "#6a1b9a", font: "'Pacifico', cursive" }
+    const cuteFonts = [
+      "'Caveat', cursive",
+      "'Dancing Script', cursive",
+      "'Pacifico', cursive",
+      "'Fredoka', sans-serif",
+      "'Sacramento', cursive",
+      "'Indie Flower', cursive",
+      "'Comfortaa', sans-serif",
+      "'Quicksand', sans-serif"
     ];
+
+    const cuteColors = [
+      "#e91e63", "#8e24aa", "#d81b60", "#ff3d00", "#00897b",
+      "#3949ab", "#c2185b", "#6d4c41", "#ad1457", "#5e35b1"
+    ];
+
+    const cuteSizes = [22, 26, 30, 35, 40, 44];
 
     const backgrounds = [
       "radial-gradient(circle at 20% 20%, #ffe6f2 0%, #ffd6eb 45%, #e8d5ff 100%)",
@@ -422,124 +416,140 @@
       "radial-gradient(circle at 50% 50%, #2c003e 0%, #120024 100%)"
     ];
 
+    function getRandomStyle() {
+      const font = cuteFonts[Math.floor(Math.random() * cuteFonts.length)];
+      const color = cuteColors[Math.floor(Math.random() * cuteColors.length)];
+      const size = cuteSizes[Math.floor(Math.random() * cuteSizes.length)];
+      const rot = Math.floor(Math.random() * 28) - 14;
+      return { font, color, size, rot };
+    }
+
     function enterRoom(name) {
       currentUser = name;
       document.getElementById("login-screen").style.display = "none";
-    }
-
-    function cycleStyle() {
-      styleIndex = (styleIndex + 1) % styles.length;
-      const input = document.getElementById("msg-input");
-      input.style.fontFamily = styles[styleIndex].font;
-      input.style.color = styles[styleIndex].color === "#ffffff" ? "#ff4081" : styles[styleIndex].color;
-    }
-
-    function cycleBg() {
-      bgIndex = (bgIndex + 1) % backgrounds.length;
-      db.ref("room/bg").set(bgIndex);
-    }
-
-    db.ref("room/bg").on("value", (snap) => {
-      const idx = snap.val();
-      if (idx !== null) {
-        document.body.style.background = backgrounds[idx];
-      }
-    });
-
-    // Send Floating Daze Message
-    function sendDazeText() {
-      const input = document.getElementById("msg-input");
-      const text = input.value.trim();
-      if (!text) return;
-
-      const st = styles[styleIndex];
-      const randomX = Math.floor(Math.random() * 50) + 25; // 25% to 75%
-      const randomY = Math.floor(Math.random() * 40) + 25; // 25% to 65%
-      const rot = Math.floor(Math.random() * 14) - 7;
-
-      db.ref("items").push({
-        type: "text",
-        sender: currentUser,
-        text: text,
-        x: randomX,
-        y: randomY,
-        rot: rot,
-        bg: st.bg,
-        color: st.color,
-        font: st.font
-      });
-
-      input.value = "";
-    }
-
-    // Drop Sticker
-    function dropSticker(emoji) {
-      const randomX = Math.floor(Math.random() * 60) + 20;
-      const randomY = Math.floor(Math.random() * 50) + 20;
-      const rot = Math.floor(Math.random() * 30) - 15;
-
-      db.ref("items").push({
-        type: "sticker",
-        sender: currentUser,
-        text: emoji,
-        x: randomX,
-        y: randomY,
-        rot: rot
-      });
-      toggleStickers();
     }
 
     function toggleStickers() {
       document.getElementById("sticker-drawer").classList.toggle("open");
     }
 
-    // Render Live Items & Allow Dragging
-    const layer = document.getElementById("scrapbook-layer");
-    db.ref("items").on("value", (snapshot) => {
-      layer.innerHTML = "";
-      snapshot.forEach((child) => {
-        const key = child.key;
-        const data = child.val();
-        const el = document.createElement("div");
-        el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
-        el.style.left = data.x + "%";
-        el.style.top = data.y + "%";
-        el.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
+    function cycleBg() {
+      bgIndex = (bgIndex + 1) % backgrounds.length;
+      document.body.style.background = backgrounds[bgIndex];
+      if (db) db.ref("room/bg").set(bgIndex);
+    }
 
-        if (data.type === "text") {
-          el.style.background = data.bg;
-          el.style.color = data.color;
-          el.style.fontFamily = data.font;
-          el.innerHTML = `<span class="sender-tag">${data.sender}</span>${data.text}`;
-        } else {
-          el.textContent = data.text;
-        }
+    function sendDazeText() {
+      const input = document.getElementById("msg-input");
+      const text = input.value.trim();
+      if (!text) return;
 
-        makeDraggable(el, key, data.rot || 0);
-        layer.appendChild(el);
-      });
-    });
+      const st = getRandomStyle();
+      const itemData = {
+        type: "text",
+        sender: currentUser,
+        text: text,
+        x: Math.floor(Math.random() * 54) + 23,
+        y: Math.floor(Math.random() * 44) + 23,
+        rot: st.rot,
+        color: st.color,
+        font: st.font,
+        size: st.size
+      };
 
-    function makeDraggable(el, key, rot) {
+      if (db) {
+        db.ref("items").push(itemData);
+      } else {
+        renderSingleItem("local-" + Date.now(), itemData);
+      }
+      input.value = "";
+    }
+
+    function dropSticker(emoji) {
+      const itemData = {
+        type: "sticker",
+        sender: currentUser,
+        text: emoji,
+        x: Math.floor(Math.random() * 60) + 20,
+        y: Math.floor(Math.random() * 50) + 20,
+        rot: Math.floor(Math.random() * 34) - 17
+      };
+
+      if (db) {
+        db.ref("items").push(itemData);
+      } else {
+        renderSingleItem("local-" + Date.now(), itemData);
+      }
+      toggleStickers();
+    }
+
+    function renderSingleItem(key, data) {
+      const layer = document.getElementById("scrapbook-layer");
+      const el = document.createElement("div");
+      el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
+      el.style.left = data.x + "%";
+      el.style.top = data.y + "%";
+      el.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
+
+      if (data.type === "text") {
+        el.style.color = data.color || "#e91e63";
+        el.style.fontFamily = data.font || "'Caveat', cursive";
+        el.style.fontSize = (data.size || 28) + "px";
+        el.textContent = data.text;
+      } else {
+        el.textContent = data.text;
+      }
+
+      makeDraggableAndRestyleable(el, key, data);
+      layer.appendChild(el);
+    }
+
+    function makeDraggableAndRestyleable(el, key, data) {
       let dragging = false;
-      el.addEventListener("pointerdown", () => { dragging = true; });
+      let moved = false;
+
+      el.addEventListener("pointerdown", () => {
+        dragging = true;
+        moved = false;
+      });
+
       window.addEventListener("pointermove", (e) => {
         if (!dragging) return;
+        moved = true;
         const xPct = Math.max(8, Math.min(92, (e.clientX / window.innerWidth) * 100));
         const yPct = Math.max(12, Math.min(82, (e.clientY / window.innerHeight) * 100));
         el.style.left = xPct + "%";
         el.style.top = yPct + "%";
       });
+
       window.addEventListener("pointerup", () => {
         if (!dragging) return;
         dragging = false;
-        const xPct = parseFloat(el.style.left);
-        const yPct = parseFloat(el.style.top);
-        db.ref("items/" + key).update({ x: xPct, y: yPct });
+
+        if (!moved && data.type === "text") {
+          const newSt = getRandomStyle();
+          el.style.color = newSt.color;
+          el.style.fontFamily = newSt.font;
+          el.style.fontSize = newSt.size + "px";
+          el.style.transform = `translate(-50%, -50%) rotate(${newSt.rot}deg)`;
+
+          if (db && !key.startsWith("local-")) {
+            db.ref("items/" + key).update({
+              color: newSt.color,
+              font: newSt.font,
+              size: newSt.size,
+              rot: newSt.rot
+            });
+          }
+        } else if (moved && db && !key.startsWith("local-")) {
+          db.ref("items/" + key).update({
+            x: parseFloat(el.style.left),
+            y: parseFloat(el.style.top)
+          });
+        }
       });
     }
 
-    // YouTube Live Sync
     function setYoutubeSong() {
       const url = document.getElementById("yt-url").value.trim();
       let videoId = "";
@@ -549,22 +559,20 @@
         videoId = url.split("youtu.be/")[1].split("?")[0];
       }
       if (videoId) {
-        db.ref("room/yt").set(videoId);
+        playYtId(videoId);
+        if (db) db.ref("room/yt").set(videoId);
         document.getElementById("yt-url").value = "";
       }
     }
 
-    db.ref("room/yt").on("value", (snap) => {
-      const vid = snap.val();
-      if (vid) {
-        const wrap = document.getElementById("yt-player-wrap");
-        const iframe = document.getElementById("yt-iframe");
-        wrap.style.display = "block";
-        iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}`;
-      }
-    });
+    function playYtId(vid) {
+      const wrap = document.getElementById("yt-player-wrap");
+      const iframe = document.getElementById("yt-iframe");
+      wrap.style.display = "block";
+      iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}`;
+    }
 
-    // Doodle Drawing Feature
+    // Doodle Drawing
     const canvas = document.getElementById("draw-canvas");
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
@@ -596,39 +604,48 @@
     canvas.addEventListener("pointerup", () => { painting = false; });
 
     function clearBoard() {
-      db.ref("items").remove();
+      document.getElementById("scrapbook-layer").innerHTML = "";
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (db) db.ref("items").remove();
     }
 
-    // Proposal Sync
     function triggerProposal() {
-      db.ref("room/proposal").set(true);
+      document.getElementById("proposal-modal").classList.add("show");
+      if (db) db.ref("room/proposal").set(true);
     }
-
-    db.ref("room/proposal").on("value", (snap) => {
-      if (snap.val() === true) {
-        document.getElementById("proposal-modal").classList.add("show");
-      }
-    });
 
     function acceptProposal() {
-      db.ref("room/proposal").set(false);
       document.getElementById("proposal-modal").classList.remove("show");
+      if (db) db.ref("room/proposal").set(false);
       dropSticker("💍");
       dropSticker("🫀");
-      db.ref("items").push({
+      const msg = {
         type: "text",
         sender: currentUser,
         text: "SHE SAID YES TO FOREVER AGAIN!! 💍💖🧿",
         x: 50,
         y: 45,
-        rot: 0,
-        bg: "#ff4081",
-        color: "#ffffff",
-        font: "'Caveat', cursive"
-      });
+        rot: -4,
+        color: "#e91e63",
+        font: "'Caveat', cursive",
+        size: 36
+      };
+      if (db) db.ref("items").push(msg);
+      else renderSingleItem("local-" + Date.now(), msg);
     }
   </script>
-</body>
-  </html>
-  
+
+  <!-- Firebase Live Sync Connection -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    try {
+      const firebaseConfig = {
+        databaseURL: "https://rupsanajii-default-rtdb.firebaseio.com/"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+
+      db.ref("room/bg").on("value", (snap) => {
+        if (snap.
