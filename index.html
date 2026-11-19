@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fredoka:wght@600;700&family=Indie+Flower&family=Pacifico&family=Quicksand:wght@700&family=Sacramento&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Caveat:wght@700&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fredoka:wght@600;700&family=Quicksand:wght@700&display=swap" rel="stylesheet">
 
   <style>
     * {
@@ -24,23 +24,24 @@
       background: radial-gradient(circle at 20% 20%, #ffe6f2 0%, #ffd6eb 45%, #e8d5ff 100%);
       font-family: 'Quicksand', sans-serif;
       position: relative;
+      transition: background 0.5s ease;
     }
 
     /* Background Grid Dots like Daze Canvas */
     #canvas-bg {
       position: fixed;
       inset: 0;
-      background-image: radial-gradient(rgba(216, 27, 96, 0.18) 1.5px, transparent 1.5px);
+      background-image: radial-gradient(rgba(233, 30, 99, 0.16) 1.5px, transparent 1.5px);
       background-size: 24px 24px;
       z-index: 1;
-      transition: background 0.5s ease;
+      pointer-events: none;
     }
 
     /* Drawing Canvas Layer */
     #draw-canvas {
       position: fixed;
       inset: 0;
-      z-index: 5;
+      z-index: 25;
       pointer-events: none;
     }
     #draw-canvas.drawing-active {
@@ -58,7 +59,7 @@
       display: flex;
       gap: 6px;
       align-items: center;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
       padding: 6px 10px;
       border-radius: 999px;
@@ -75,14 +76,30 @@
       font-size: 12px;
       font-family: 'Quicksand', sans-serif;
       font-weight: 700;
-      color: #880e4f;
+      color: #ad1457;
       outline: none;
       min-width: 0;
     }
 
+    .music-badge {
+      display: none;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ff1e7a;
+      background: #ffe4f0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      animation: pulseMusic 1.5s infinite alternate;
+    }
+    @keyframes pulseMusic {
+      0% { transform: scale(0.96); }
+      100% { transform: scale(1.04); }
+    }
+
     .icon-btn {
       border: none;
-      background: #ff4081;
+      background: #ff2e82;
       color: white;
       width: 32px;
       height: 32px;
@@ -94,12 +111,12 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 3px 10px rgba(255, 64, 129, 0.3);
+      box-shadow: 0 3px 10px rgba(255, 46, 130, 0.35);
     }
     .icon-btn:active { transform: scale(0.9); }
 
     .ring-btn {
-      background: linear-gradient(135deg, #ffd54f, #ff8f00);
+      background: linear-gradient(135deg, #ff7eb3, #ff2e82);
       animation: pulseRing 2s infinite;
     }
     @keyframes pulseRing {
@@ -107,55 +124,84 @@
       50% { transform: scale(1.1); }
     }
 
-    /* Mini YouTube Player */
+    /* Invisible Background Audio YouTube Player (No Video Box) */
     #yt-player-wrap {
       position: fixed;
-      top: 56px;
-      right: 12px;
-      width: 140px;
-      height: 80px;
-      border-radius: 12px;
+      width: 1px;
+      height: 1px;
+      top: -100px;
+      left: -100px;
+      opacity: 0.01;
+      pointer-events: none;
       overflow: hidden;
-      z-index: 45;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-      border: 2px solid #fff;
-      display: none;
     }
 
-    /* Scrapbook Items Layer - PURE FLOATING TEXT (NO BOXES) */
+    /* Scrollable Daze Stream (Slides Down Naturally Like Chat + Freeform Drag) */
     #scrapbook-layer {
       position: fixed;
-      inset: 0;
+      top: 60px;
+      bottom: 105px;
+      left: 0;
+      right: 0;
       z-index: 10;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 18px 18px 40px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      scroll-behavior: smooth;
+    }
+
+    #scrapbook-layer::-webkit-scrollbar {
+      width: 0px;
+    }
+
+    .daze-row {
+      width: 100%;
+      display: flex;
+      position: relative;
+      min-height: 36px;
+    }
+
+    .daze-row.align-right {
+      justify-content: flex-end;
+      padding-right: 6%;
+    }
+
+    .daze-row.align-left {
+      justify-content: flex-start;
+      padding-left: 6%;
+    }
+
+    .daze-row.align-center {
+      justify-content: center;
     }
 
     .daze-item {
-      position: absolute;
-      transform: translate(-50%, -50%);
+      position: relative;
       cursor: grab;
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
-      padding: 4px;
-      max-width: 82vw;
-      text-align: center;
-      line-height: 1.15;
+      padding: 4px 8px;
+      max-width: 82%;
+      line-height: 1.2;
       word-wrap: break-word;
-      filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.95)) drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
+      filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.98)) drop-shadow(0 3px 10px rgba(216, 27, 96, 0.14));
       animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-      touch-action: none;
+      touch-action: pan-y;
     }
 
     @keyframes popIn {
-      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      0% { transform: scale(0.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     .daze-item.sticker-only {
-      font-size: 48px;
+      font-size: 50px;
       padding: 0;
-      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
     }
 
     /* Bottom Daze Creative Toolbar */
@@ -178,25 +224,25 @@
     }
 
     .tool-pill {
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       border: 1.5px solid #ff80ab;
       padding: 5px 12px;
       border-radius: 999px;
       font-size: 12px;
       font-weight: 800;
-      color: #ad1457;
+      color: #c2185b;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(255, 64, 129, 0.15);
     }
     .tool-pill.active {
-      background: #ff4081;
+      background: #ff2e82;
       color: #fff;
     }
 
     .input-row {
       display: flex;
       gap: 6px;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       padding: 6px 8px;
       border-radius: 999px;
       box-shadow: 0 8px 25px rgba(216, 27, 96, 0.25);
@@ -211,14 +257,14 @@
       font-size: 14px;
       font-family: 'Quicksand', sans-serif;
       font-weight: 700;
-      color: #4a0e4e;
+      color: #6a0f49;
       outline: none;
     }
 
     /* Sticker Drawer */
     .sticker-drawer {
       display: none;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       border-radius: 20px;
       padding: 10px;
       grid-template-columns: repeat(6, 1fr);
@@ -252,8 +298,8 @@
       padding: 28px 22px;
       max-width: 360px;
       width: 100%;
-      border: 3px solid #ff4081;
-      box-shadow: 0 20px 60px rgba(255, 64, 129, 0.6);
+      border: 3px solid #ff2e82;
+      box-shadow: 0 20px 60px rgba(255, 46, 130, 0.6);
       animation: popIn 0.5s ease;
       position: relative;
     }
@@ -274,7 +320,7 @@
     }
 
     .yes-btn {
-      background: linear-gradient(135deg, #ff4081, #c2185b);
+      background: linear-gradient(135deg, #ff2e82, #c2185b);
       color: #fff;
       border: none;
       padding: 12px 24px;
@@ -317,8 +363,8 @@
       <h2 style="color: #d81b60; margin-bottom: 6px;">Our 1-Month Daze Space</h2>
       <p style="font-size: 13px; color: #880e4f; font-weight: 700; margin-bottom: 16px;">Who is entering our secret canvas?</p>
       <div style="display: flex; gap: 10px; justify-content: center;">
-        <button type="button" class="yes-btn" onclick="enterRoom('Sumit 👑')">Sumit 👑</button>
-        <button type="button" class="yes-btn" style="background: linear-gradient(135deg, #ab47bc, #7b1fa2);" onclick="enterRoom('Rupsana Jii 🧿')">Rupsana Jii 🧿</button>
+        <button type="button" class="yes-btn" onclick="enterRoom('Sumit')">Sumit 👑</button>
+        <button type="button" class="yes-btn" style="background: linear-gradient(135deg, #ab47bc, #7b1fa2);" onclick="enterRoom('Rupsana')">Rupsana Jii 🧿</button>
       </div>
     </div>
   </div>
@@ -326,20 +372,21 @@
   <div id="canvas-bg"></div>
   <canvas id="draw-canvas"></canvas>
 
-  <!-- Top Bar: YouTube DJ & Special Proposal Button -->
+  <!-- Top Bar: Background YouTube DJ & Special Proposal Button -->
   <div class="top-bar">
-    <input type="text" id="yt-url" class="yt-input" placeholder="Paste YouTube song link here..." />
-    <button type="button" class="icon-btn" onclick="setYoutubeSong()" title="Play Song">▶</button>
-    <button type="button" class="icon-btn" style="background:#ab47bc;" onclick="cycleBg()" title="Change Vibe">🎨</button>
+    <input type="text" id="yt-url" class="yt-input" placeholder="Paste YouTube song link..." />
+    <span id="music-badge" class="music-badge">🎵 Playing</span>
+    <button type="button" class="icon-btn" onclick="setYoutubeSong()" title="Play Music">▶</button>
+    <button type="button" class="icon-btn" style="background:#ab47bc;" onclick="cycleBg()" title="Change Theme">🎨</button>
     <button type="button" class="icon-btn ring-btn" onclick="triggerProposal()" title="Special Surprise">💍</button>
   </div>
 
-  <!-- Mini YouTube Player -->
+  <!-- Hidden Background Music Player (No Video Box) -->
   <div id="yt-player-wrap">
-    <iframe id="yt-iframe" width="140" height="80" src="" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+    <iframe id="yt-iframe" width="10" height="10" src="" frameborder="0" allow="autoplay; encrypted-media"></iframe>
   </div>
 
-  <!-- Live Scrapbook Items -->
+  <!-- Scrollable Live Scrapbook Stream -->
   <div id="scrapbook-layer"></div>
 
   <!-- Bottom Creative Dock -->
@@ -366,7 +413,7 @@
     </div>
 
     <div class="input-row">
-      <input type="text" id="msg-input" class="msg-input" placeholder="Type & send cute floating text..." onkeypress="if(event.key==='Enter') sendDazeText()" />
+      <input type="text" id="msg-input" class="msg-input" placeholder="Write something cute..." onkeypress="if(event.key==='Enter') sendDazeText()" />
       <button type="button" class="icon-btn" onclick="sendDazeText()">💌</button>
     </div>
   </div>
@@ -386,47 +433,56 @@
 
   <!-- Core UI Functions -->
   <script>
-    let currentUser = "Sumit 👑";
+    let currentUser = "Sumit";
     let bgIndex = 0;
     let isDrawing = false;
     let db = null;
 
+    // Bright, Cute, Super-Readable Fonts
     const cuteFonts = [
-      "'Caveat', cursive",
-      "'Dancing Script', cursive",
-      "'Pacifico', cursive",
       "'Fredoka', sans-serif",
-      "'Sacramento', cursive",
-      "'Indie Flower', cursive",
+      "'Baloo 2', cursive",
+      "'Quicksand', sans-serif",
       "'Comfortaa', sans-serif",
-      "'Quicksand', sans-serif"
+      "'Caveat', cursive"
     ];
 
+    // Bright, Vibrant, Soft & Charming Colors (No dull oranges/browns)
     const cuteColors = [
-      "#e91e63", "#8e24aa", "#d81b60", "#ff3d00", "#00897b",
-      "#3949ab", "#c2185b", "#6d4c41", "#ad1457", "#5e35b1"
+      "#ff1e7a", // Bright Bubblegum Pink
+      "#9c27b0", // Vibrant Orchid Purple
+      "#e91e63", // Sweet Rose Pink
+      "#673ab7", // Soft Royal Violet
+      "#00acc1", // Bright Sky Aqua
+      "#d81b60", // Berry Raspberry
+      "#ec407a", // Candy Flamingo
+      "#7e57c2"  // Dreamy Lavender Purple
     ];
 
-    const cuteSizes = [22, 26, 30, 35, 40, 44];
+    // Readable Cute Sizes (Medium to Big)
+    const cuteSizes = [24, 27, 30, 34];
 
     const backgrounds = [
       "radial-gradient(circle at 20% 20%, #ffe6f2 0%, #ffd6eb 45%, #e8d5ff 100%)",
-      "linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%)",
-      "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-      "radial-gradient(circle at 50% 50%, #2c003e 0%, #120024 100%)"
+      "linear-gradient(135deg, #fff0f7 0%, #e0f7fa 100%)",
+      "linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%)",
+      "radial-gradient(circle at 50% 50%, #310a3b 0%, #1a0524 100%)"
     ];
 
     function getRandomStyle() {
       const font = cuteFonts[Math.floor(Math.random() * cuteFonts.length)];
       const color = cuteColors[Math.floor(Math.random() * cuteColors.length)];
       const size = cuteSizes[Math.floor(Math.random() * cuteSizes.length)];
-      const rot = Math.floor(Math.random() * 28) - 14;
-      return { font, color, size, rot };
+      const rot = Math.floor(Math.random() * 12) - 6; // Subtle cute tilt (-6deg to +6deg)
+      const offsetX = Math.floor(Math.random() * 24) - 12; // Natural playful horizontal scatter
+      return { font, color, size, rot, offsetX };
     }
 
     function enterRoom(name) {
       currentUser = name;
       document.getElementById("login-screen").style.display = "none";
+      const layer = document.getElementById("scrapbook-layer");
+      layer.scrollTop = layer.scrollHeight;
     }
 
     function toggleStickers() {
@@ -449,9 +505,8 @@
         type: "text",
         sender: currentUser,
         text: text,
-        x: Math.floor(Math.random() * 54) + 23,
-        y: Math.floor(Math.random() * 44) + 23,
         rot: st.rot,
+        offsetX: st.offsetX,
         color: st.color,
         font: st.font,
         size: st.size
@@ -470,9 +525,8 @@
         type: "sticker",
         sender: currentUser,
         text: emoji,
-        x: Math.floor(Math.random() * 60) + 20,
-        y: Math.floor(Math.random() * 50) + 20,
-        rot: Math.floor(Math.random() * 34) - 17
+        rot: Math.floor(Math.random() * 24) - 12,
+        offsetX: Math.floor(Math.random() * 40) - 20
       };
 
       if (db) {
@@ -485,41 +539,55 @@
 
     function renderSingleItem(key, data) {
       const layer = document.getElementById("scrapbook-layer");
+
+      const row = document.createElement("div");
+      if (data.sender === "Sumit") {
+        row.className = "daze-row align-right";
+      } else if (data.sender === "Rupsana") {
+        row.className = "daze-row align-left";
+      } else {
+        row.className = "daze-row align-center";
+      }
+
       const el = document.createElement("div");
       el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
-      el.style.left = data.x + "%";
-      el.style.top = data.y + "%";
-      el.style.transform = `translate(-50%, -50%) rotate(${data.rot || 0}deg)`;
+      el.style.transform = `translateX(${data.offsetX || 0}px) rotate(${data.rot || 0}deg)`;
 
       if (data.type === "text") {
-        el.style.color = data.color || "#e91e63";
-        el.style.fontFamily = data.font || "'Caveat', cursive";
-        el.style.fontSize = (data.size || 28) + "px";
+        el.style.color = data.color || "#ff1e7a";
+        el.style.fontFamily = data.font || "'Fredoka', sans-serif";
+        el.style.fontSize = (data.size || 27) + "px";
         el.textContent = data.text;
       } else {
         el.textContent = data.text;
       }
 
       makeDraggableAndRestyleable(el, key, data);
-      layer.appendChild(el);
+      row.appendChild(el);
+      layer.appendChild(row);
+
+      // Automatically slide down to newest message!
+      layer.scrollTop = layer.scrollHeight;
     }
 
     function makeDraggableAndRestyleable(el, key, data) {
+      let startX = 0;
+      let currentOffset = data.offsetX || 0;
       let dragging = false;
       let moved = false;
 
-      el.addEventListener("pointerdown", () => {
+      el.addEventListener("pointerdown", (e) => {
         dragging = true;
         moved = false;
+        startX = e.clientX - currentOffset;
       });
 
       window.addEventListener("pointermove", (e) => {
         if (!dragging) return;
-        moved = true;
-        const xPct = Math.max(8, Math.min(92, (e.clientX / window.innerWidth) * 100));
-        const yPct = Math.max(12, Math.min(82, (e.clientY / window.innerHeight) * 100));
-        el.style.left = xPct + "%";
-        el.style.top = yPct + "%";
+        const delta = e.clientX - startX;
+        if (Math.abs(delta - currentOffset) > 4) moved = true;
+        currentOffset = Math.max(-80, Math.min(80, delta));
+        el.style.transform = `translateX(${currentOffset}px) rotate(${data.rot || 0}deg)`;
       });
 
       window.addEventListener("pointerup", () => {
@@ -531,7 +599,7 @@
           el.style.color = newSt.color;
           el.style.fontFamily = newSt.font;
           el.style.fontSize = newSt.size + "px";
-          el.style.transform = `translate(-50%, -50%) rotate(${newSt.rot}deg)`;
+          el.style.transform = `translateX(${currentOffset}px) rotate(${newSt.rot}deg)`;
 
           if (db && !key.startsWith("local-")) {
             db.ref("items/" + key).update({
@@ -543,8 +611,7 @@
           }
         } else if (moved && db && !key.startsWith("local-")) {
           db.ref("items/" + key).update({
-            x: parseFloat(el.style.left),
-            y: parseFloat(el.style.top)
+            offsetX: currentOffset
           });
         }
       });
@@ -566,9 +633,9 @@
     }
 
     function playYtId(vid) {
-      const wrap = document.getElementById("yt-player-wrap");
       const iframe = document.getElementById("yt-iframe");
-      wrap.style.display = "block";
+      const badge = document.getElementById("music-badge");
+      badge.style.display = "inline-block";
       iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}`;
     }
 
@@ -589,63 +656,4 @@
       if (!isDrawing) return;
       painting = true;
       ctx.beginPath();
-      ctx.moveTo(e.clientX, e.clientY);
-    });
-
-    canvas.addEventListener("pointermove", (e) => {
-      if (!painting || !isDrawing) return;
-      ctx.lineWidth = 4;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = "#ff4081";
-      ctx.lineTo(e.clientX, e.clientY);
-      ctx.stroke();
-    });
-
-    canvas.addEventListener("pointerup", () => { painting = false; });
-
-    function clearBoard() {
-      document.getElementById("scrapbook-layer").innerHTML = "";
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (db) db.ref("items").remove();
-    }
-
-    function triggerProposal() {
-      document.getElementById("proposal-modal").classList.add("show");
-      if (db) db.ref("room/proposal").set(true);
-    }
-
-    function acceptProposal() {
-      document.getElementById("proposal-modal").classList.remove("show");
-      if (db) db.ref("room/proposal").set(false);
-      dropSticker("💍");
-      dropSticker("🫀");
-      const msg = {
-        type: "text",
-        sender: currentUser,
-        text: "SHE SAID YES TO FOREVER AGAIN!! 💍💖🧿",
-        x: 50,
-        y: 45,
-        rot: -4,
-        color: "#e91e63",
-        font: "'Caveat', cursive",
-        size: 36
-      };
-      if (db) db.ref("items").push(msg);
-      else renderSingleItem("local-" + Date.now(), msg);
-    }
-  </script>
-
-  <!-- Firebase Live Sync Connection -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script>
-    try {
-      const firebaseConfig = {
-        databaseURL: "https://rupsanajii-default-rtdb.firebaseio.com/"
-      };
-
-      firebase.initializeApp(firebaseConfig);
-      db = firebase.database();
-
-      db.ref("room/bg").on("value", (snap) => {
-        if (snap.
+      ctx.moveTo(e.
