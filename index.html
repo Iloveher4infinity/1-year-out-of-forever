@@ -656,4 +656,85 @@
       if (!isDrawing) return;
       painting = true;
       ctx.beginPath();
-      ctx.moveTo(e.
+      ctx.moveTo(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (!painting || !isDrawing) return;
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#ff2e82";
+      ctx.lineTo(e.clientX, e.clientY);
+      ctx.stroke();
+    });
+
+    canvas.addEventListener("pointerup", () => { painting = false; });
+
+    function clearBoard() {
+      document.getElementById("scrapbook-layer").innerHTML = "";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (db) db.ref("items").remove();
+    }
+
+    function triggerProposal() {
+      document.getElementById("proposal-modal").classList.add("show");
+      if (db) db.ref("room/proposal").set(true);
+    }
+
+    function acceptProposal() {
+      document.getElementById("proposal-modal").classList.remove("show");
+      if (db) db.ref("room/proposal").set(false);
+      dropSticker("💍");
+      const msg = {
+        type: "text",
+        sender: "Center",
+        text: "SHE SAID YES TO FOREVER AGAIN!! 💍💖🧿",
+        rot: -2,
+        offsetX: 0,
+        color: "#ff1e7a",
+        font: "'Fredoka', sans-serif",
+        size: 32
+      };
+      if (db) db.ref("items").push(msg);
+      else renderSingleItem("local-" + Date.now(), msg);
+    }
+  </script>
+
+  <!-- Firebase Live Sync Connection -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    try {
+      const firebaseConfig = {
+        databaseURL: "https://rupsanajii-default-rtdb.firebaseio.com/"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+
+      db.ref("room/bg").on("value", (snap) => {
+        if (snap.val() !== null) document.body.style.background = backgrounds[snap.val()];
+      });
+
+      db.ref("items").on("value", (snapshot) => {
+        document.getElementById("scrapbook-layer").innerHTML = "";
+        snapshot.forEach((child) => {
+          renderSingleItem(child.key, child.val());
+        });
+      });
+
+      db.ref("room/yt").on("value", (snap) => {
+        if (snap.val()) playYtId(snap.val());
+      });
+
+      db.ref("room/proposal").on("value", (snap) => {
+        if (snap.val() === true) document.getElementById("proposal-modal").classList.add("show");
+      });
+    } catch (err) {
+      console.log("Firebase error:", err);
+    }
+  </script>
+</body>
+</html>
+
+                 
