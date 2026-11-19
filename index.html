@@ -488,7 +488,8 @@
       <button type="button" class="yes-btn" onclick="acceptProposal()">YES, FOREVER & ALWAYS! 💍💋</button>
     </div>
     </div>
-          <script>
+
+    <script>
     const FIREBASE_URL = "https://rupsanajii-default-rtdb.firebaseio.com";
 
     let currentUser = "Sumit";
@@ -525,9 +526,11 @@
 
     function enterRoom(name) {
       currentUser = name;
-      document.getElementById("login-screen").style.display = "none";
+      const loginEl = document.getElementById("login-screen");
+      if (loginEl) loginEl.style.display = "none";
       if (name === "Sumit") {
-        document.getElementById("sumit-yes-btn").style.display = "inline-block";
+        const yesBtn = document.getElementById("sumit-yes-btn");
+        if (yesBtn) yesBtn.style.display = "inline-block";
       }
       syncFromFirebase(true);
     }
@@ -551,7 +554,7 @@
     function cycleBg() {
       bgIndex = (bgIndex + 1) % backgrounds.length;
       document.body.style.background = backgrounds[bgIndex];
-      fetch(`${FIREBASE_URL}/room/bg.json`, {
+      fetch(FIREBASE_URL + "/room/bg.json", {
         method: "PUT",
         body: JSON.stringify(bgIndex)
       });
@@ -578,8 +581,7 @@
           }
           tempCanvas.width = w;
           tempCanvas.height = h;
-          const tCtx = tempCanvas.getContext("2d");
-          tCtx.drawImage(img, 0, 0, w, h);
+          tempCanvas.getContext("2d").drawImage(img, 0, 0, w, h);
 
           const compressedDataUrl = tempCanvas.toDataURL("image/jpeg", 0.78);
           const itemData = {
@@ -594,7 +596,7 @@
           };
 
           appendSingleSlot("temp-" + Date.now(), itemData, true);
-          fetch(`${FIREBASE_URL}/items.json`, {
+          fetch(FIREBASE_URL + "/items.json", {
             method: "POST",
             body: JSON.stringify(itemData)
           }).then(() => syncFromFirebase(true));
@@ -627,7 +629,7 @@
       input.value = "";
       appendSingleSlot("temp-" + Date.now(), itemData, true);
 
-      fetch(`${FIREBASE_URL}/items.json`, {
+      fetch(FIREBASE_URL + "/items.json", {
         method: "POST",
         body: JSON.stringify(itemData)
       }).then(() => syncFromFirebase(true));
@@ -647,7 +649,7 @@
       toggleStickers();
       appendSingleSlot("temp-" + Date.now(), itemData, true);
 
-      fetch(`${FIREBASE_URL}/items.json`, {
+      fetch(FIREBASE_URL + "/items.json", {
         method: "POST",
         body: JSON.stringify(itemData)
       }).then(() => syncFromFirebase(true));
@@ -678,7 +680,7 @@
         wrap.style.width = "165px";
 
         const updatePhotoTransform = () => {
-          wrap.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${scale})`;
+          wrap.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg) scale(" + scale + ")";
         };
         updatePhotoTransform();
 
@@ -695,7 +697,7 @@
 
         const savePhotoState = () => {
           if (!key.startsWith("temp-")) {
-            fetch(`${FIREBASE_URL}/items/${key}.json`, {
+            fetch(FIREBASE_URL + "/items/" + key + ".json", {
               method: "PATCH",
               body: JSON.stringify({
                 dx: Math.round(dx),
@@ -834,7 +836,7 @@
 
       const el = document.createElement("div");
       el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
-      el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
 
       if (data.type === "text") {
         el.style.color = data.color || "#ff1e7a";
@@ -863,7 +865,7 @@
         if (Math.abs(newDx - dx) > 4 || Math.abs(newDy - dy) > 4) moved = true;
         dx = newDx;
         dy = newDy;
-        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+        el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
       });
 
       el.addEventListener("pointerup", (e) => {
@@ -877,10 +879,10 @@
           el.style.color = newSt.color;
           el.style.fontFamily = newSt.font;
           el.style.fontSize = newSt.size + "px";
-          el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+          el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
 
           if (!key.startsWith("temp-")) {
-            fetch(`${FIREBASE_URL}/items/${key}.json`, {
+            fetch(FIREBASE_URL + "/items/" + key + ".json", {
               method: "PATCH",
               body: JSON.stringify({
                 color: newSt.color,
@@ -891,7 +893,7 @@
             });
           }
         } else if (moved && !key.startsWith("temp-")) {
-          fetch(`${FIREBASE_URL}/items/${key}.json`, {
+          fetch(FIREBASE_URL + "/items/" + key + ".json", {
             method: "PATCH",
             body: JSON.stringify({ dx: dx, dy: dy })
           });
@@ -901,9 +903,7 @@
       slot.appendChild(el);
       layer.appendChild(slot);
 
-      if (autoScroll) {
-        layer.scrollTop = layer.scrollHeight;
-      }
+      if (autoScroll) layer.scrollTop = layer.scrollHeight;
     }
 
     function renderAllItems(itemsObj, shouldAutoScroll) {
@@ -916,11 +916,7 @@
         appendSingleSlot(key, itemsObj[key], false);
       });
 
-      if (shouldAutoScroll) {
-        layer.scrollTop = layer.scrollHeight;
-      } else {
-        layer.scrollTop = oldScrollTop;
-      }
+      layer.scrollTop = shouldAutoScroll ? layer.scrollHeight : oldScrollTop;
     }
 
     function setYoutubeSong() {
@@ -932,7 +928,7 @@
       if (videoId) {
         document.getElementById("yt-url").value = "";
         playYtId(videoId);
-        fetch(`${FIREBASE_URL}/room/yt.json`, {
+        fetch(FIREBASE_URL + "/room/yt.json", {
           method: "PUT",
           body: JSON.stringify(videoId)
         });
@@ -948,12 +944,12 @@
       currentYtId = vid;
       document.getElementById("music-badge").style.display = "inline-block";
       document.getElementById("stop-music-btn").style.display = "flex";
-      document.getElementById("yt-iframe").src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}`;
+      document.getElementById("yt-iframe").src = "https://www.youtube.com/embed/" + vid + "?autoplay=1&loop=1&playlist=" + vid;
     }
 
     function stopYoutubeSong() {
       stopYtLocal();
-      fetch(`${FIREBASE_URL}/room/yt.json`, {
+      fetch(FIREBASE_URL + "/room/yt.json", {
         method: "PUT",
         body: JSON.stringify("")
       });
@@ -1014,12 +1010,12 @@
       document.getElementById("scrapbook-layer").innerHTML = "";
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       lastItemsJson = "{}";
-      fetch(`${FIREBASE_URL}/items.json`, { method: "DELETE" });
+      fetch(FIREBASE_URL + "/items.json", { method: "DELETE" });
     }
 
     function triggerProposal() {
       document.getElementById("proposal-modal").classList.add("show");
-      fetch(`${FIREBASE_URL}/room/proposal.json`, {
+      fetch(FIREBASE_URL + "/room/proposal.json", {
         method: "PUT",
         body: JSON.stringify(true)
       });
@@ -1027,12 +1023,12 @@
 
     function acceptProposal() {
       document.getElementById("proposal-modal").classList.remove("show");
-      fetch(`${FIREBASE_URL}/room/proposal.json`, {
+      fetch(FIREBASE_URL + "/room/proposal.json", {
         method: "PUT",
         body: JSON.stringify(false)
       });
       triggerFlowerCelebration();
-      fetch(`${FIREBASE_URL}/items.json`, {
+      fetch(FIREBASE_URL + "/items.json", {
         method: "POST",
         body: JSON.stringify({
           type: "text",
@@ -1052,7 +1048,7 @@
     function triggerFlowerCelebration() {
       const now = Date.now();
       launchShower();
-      fetch(`${FIREBASE_URL}/room/celebrate.json`, {
+      fetch(FIREBASE_URL + "/room/celebrate.json", {
         method: "PUT",
         body: JSON.stringify(now)
       });
@@ -1074,10 +1070,10 @@
       }
     }
 
-    function syncFromFirebase(forceScroll = false) {
+    function syncFromFirebase(forceScroll) {
       if (isDraggingItem) return;
 
-      fetch(`${FIREBASE_URL}/.json`)
+      fetch(FIREBASE_URL + "/.json")
         .then(res => res.json())
         .then(data => {
           if (!data) {
