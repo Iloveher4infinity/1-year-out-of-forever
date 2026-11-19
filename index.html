@@ -36,7 +36,6 @@
       pointer-events: none;
     }
 
-    /* Smooth Doodle Canvas */
     #draw-canvas {
       position: fixed;
       inset: 0;
@@ -49,7 +48,6 @@
       cursor: crosshair;
     }
 
-    /* Top Bar */
     .top-bar {
       position: fixed;
       top: 10px;
@@ -124,7 +122,6 @@
       50% { transform: scale(1.1); }
     }
 
-    /* Hidden Background YouTube Player */
     #yt-player-wrap {
       position: fixed;
       width: 1px;
@@ -136,7 +133,6 @@
       overflow: hidden;
     }
 
-    /* Scrollable Daze Scrapbook Feed */
     #scrapbook-layer {
       position: fixed;
       top: 58px;
@@ -161,7 +157,6 @@
       flex-shrink: 0;
     }
 
-    /* Freeform Draggable Text & Sticker */
     .daze-item {
       position: relative;
       cursor: grab;
@@ -188,7 +183,6 @@
       filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
     }
 
-    /* Cute Polaroid Scrapbook Photo Card with Multi-Touch Pinch & Twist */
     .daze-photo-wrap {
       position: relative;
       cursor: grab;
@@ -230,7 +224,6 @@
       pointer-events: none;
     }
 
-    /* Single-Finger Corner Handle for Easy Rotate + Zoom */
     .photo-handle {
       position: absolute;
       bottom: -10px;
@@ -250,7 +243,6 @@
       cursor: nwse-resize;
     }
 
-    /* Bottom Dock */
     .bottom-dock {
       position: fixed;
       bottom: 12px;
@@ -320,7 +312,6 @@
       outline: none;
     }
 
-    /* Sticker Drawer */
     .sticker-drawer {
       display: none;
       background: rgba(255, 255, 255, 0.96);
@@ -336,7 +327,6 @@
     .sticker-choice { cursor: pointer; transition: transform 0.15s; }
     .sticker-choice:active { transform: scale(1.3); }
 
-    /* Proposal Modal */
     #proposal-modal {
       display: none;
       position: fixed;
@@ -389,7 +379,6 @@
     }
     .yes-btn:active { transform: scale(0.94); }
 
-    /* Login Screen */
     #login-screen {
       position: fixed;
       inset: 0;
@@ -410,7 +399,6 @@
       box-shadow: 0 15px 40px rgba(216, 27, 96, 0.25);
     }
 
-    /* Fullscreen Flower & Happy Emoji Shower */
     .celebration-drop {
       position: fixed;
       top: -50px;
@@ -427,7 +415,6 @@
 </head>
 <body>
 
-  <!-- Login Screen -->
   <div id="login-screen">
     <div class="login-box">
       <div style="font-size: 42px; margin-bottom: 8px;">💌✨</div>
@@ -443,10 +430,8 @@
   <div id="canvas-bg"></div>
   <canvas id="draw-canvas"></canvas>
 
-  <!-- Hidden File Input for Gallery Photos -->
   <input type="file" id="photo-picker" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;" onchange="handlePhotoUpload(event)" />
 
-  <!-- Top Bar with Play & Stop Music Buttons -->
   <div class="top-bar">
     <input type="text" id="yt-url" class="yt-input" placeholder="Paste YouTube song link..." />
     <span id="music-badge" class="music-badge">🎵</span>
@@ -456,15 +441,12 @@
     <button type="button" class="icon-btn ring-btn" onclick="triggerProposal()" title="Propose">💍</button>
   </div>
 
-  <!-- Hidden Background Music Player -->
   <div id="yt-player-wrap">
     <iframe id="yt-iframe" width="10" height="10" src="" frameborder="0" allow="autoplay; encrypted-media"></iframe>
   </div>
 
-  <!-- Scrollable Live Scrapbook Stream -->
   <div id="scrapbook-layer"></div>
 
-  <!-- Bottom Creative Dock -->
   <div class="bottom-dock">
     <div class="sticker-drawer" id="sticker-drawer">
       <span class="sticker-choice" onclick="dropSticker('🫀')">🫀</span>
@@ -495,7 +477,6 @@
     </div>
   </div>
 
-  <!-- Proposal Modal -->
   <div id="proposal-modal">
     <div class="proposal-card">
       <div style="font-size: 50px; margin-bottom: 6px;">💍💖🧿</div>
@@ -506,9 +487,8 @@
       </div>
       <button type="button" class="yes-btn" onclick="acceptProposal()">YES, FOREVER & ALWAYS! 💍💋</button>
     </div>
-  </div>
-
-  <script>
+    </div>
+          <script>
     const FIREBASE_URL = "https://rupsanajii-default-rtdb.firebaseio.com";
 
     let currentUser = "Sumit";
@@ -577,7 +557,6 @@
       });
     }
 
-    // Upload & Compress Gallery Photo (PNG / JPEG)
     function handlePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -707,7 +686,6 @@
         img.className = "daze-photo-img";
         img.src = data.src;
 
-        // Corner Handle for 1-finger Rotate + Zoom
         const handle = document.createElement("div");
         handle.className = "photo-handle";
         handle.textContent = "🔄";
@@ -715,7 +693,6 @@
         wrap.appendChild(img);
         wrap.appendChild(handle);
 
-        // Save updated position/rotation/scale to Firebase
         const savePhotoState = () => {
           if (!key.startsWith("temp-")) {
             fetch(`${FIREBASE_URL}/items/${key}.json`, {
@@ -730,7 +707,6 @@
           }
         };
 
-        // 1-Finger Drag + 2-Finger Pinch-to-Zoom & Twist-to-Rotate
         let gestureMode = "none";
         let startDragX = 0, startDragY = 0;
         let startDist = 0, startAngle = 0;
@@ -789,5 +765,360 @@
               scale = Math.max(0.45, Math.min(2.6, baseScale * (curDist / startDist)));
             }
             rot = baseRot + (curAngle - startAngle);
-            dx = baseDx + (c
-    
+            dx = baseDx + (curMidX - midStartX);
+            dy = baseDy + (curMidY - midStartY);
+            updatePhotoTransform();
+          }
+        }, { passive: false });
+
+        wrap.addEventListener("touchend", (e) => {
+          if (!isDraggingItem) return;
+          if (e.touches.length === 0) {
+            isDraggingItem = false;
+            gestureMode = "none";
+            savePhotoState();
+          } else if (e.touches.length === 1) {
+            gestureMode = "drag";
+            startDragX = e.touches[0].clientX - dx;
+            startDragY = e.touches[0].clientY - dy;
+          }
+        });
+
+        let handlingCorner = false;
+        let centerX = 0, centerY = 0, handleStartAngle = 0, handleStartDist = 0;
+
+        handle.addEventListener("pointerdown", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          handlingCorner = true;
+          isDraggingItem = true;
+          handle.setPointerCapture(e.pointerId);
+
+          const rect = wrap.getBoundingClientRect();
+          centerX = rect.left + rect.width / 2;
+          centerY = rect.top + rect.height / 2;
+          handleStartAngle = (Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180) / Math.PI;
+          handleStartDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+          baseRot = rot;
+          baseScale = scale;
+        });
+
+        handle.addEventListener("pointermove", (e) => {
+          if (!handlingCorner) return;
+          e.stopPropagation();
+          e.preventDefault();
+
+          const curAngle = (Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180) / Math.PI;
+          const curDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+
+          rot = baseRot + (curAngle - handleStartAngle);
+          if (handleStartDist > 10) {
+            scale = Math.max(0.45, Math.min(2.6, baseScale * (curDist / handleStartDist)));
+          }
+          updatePhotoTransform();
+        });
+
+        handle.addEventListener("pointerup", (e) => {
+          if (!handlingCorner) return;
+          handlingCorner = false;
+          isDraggingItem = false;
+          handle.releasePointerCapture(e.pointerId);
+          savePhotoState();
+        });
+
+        slot.appendChild(wrap);
+        layer.appendChild(slot);
+        if (autoScroll) layer.scrollTop = layer.scrollHeight;
+        return;
+      }
+
+      const el = document.createElement("div");
+      el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
+      el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+
+      if (data.type === "text") {
+        el.style.color = data.color || "#ff1e7a";
+        el.style.fontFamily = data.font || "'Fredoka', sans-serif";
+        el.style.fontSize = (data.size || 27) + "px";
+        el.textContent = data.text;
+      } else {
+        el.textContent = data.text;
+      }
+
+      let startX = 0, startY = 0, moved = false;
+
+      el.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        isDraggingItem = true;
+        moved = false;
+        startX = e.clientX - dx;
+        startY = e.clientY - dy;
+        el.setPointerCapture(e.pointerId);
+      });
+
+      el.addEventListener("pointermove", (e) => {
+        if (!isDraggingItem) return;
+        const newDx = e.clientX - startX;
+        const newDy = e.clientY - startY;
+        if (Math.abs(newDx - dx) > 4 || Math.abs(newDy - dy) > 4) moved = true;
+        dx = newDx;
+        dy = newDy;
+        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      });
+
+      el.addEventListener("pointerup", (e) => {
+        if (!isDraggingItem) return;
+        isDraggingItem = false;
+        el.releasePointerCapture(e.pointerId);
+
+        if (!moved && data.type === "text") {
+          const newSt = getRandomStyle();
+          rot = newSt.rot;
+          el.style.color = newSt.color;
+          el.style.fontFamily = newSt.font;
+          el.style.fontSize = newSt.size + "px";
+          el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+
+          if (!key.startsWith("temp-")) {
+            fetch(`${FIREBASE_URL}/items/${key}.json`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                color: newSt.color,
+                font: newSt.font,
+                size: newSt.size,
+                rot: rot
+              })
+            });
+          }
+        } else if (moved && !key.startsWith("temp-")) {
+          fetch(`${FIREBASE_URL}/items/${key}.json`, {
+            method: "PATCH",
+            body: JSON.stringify({ dx: dx, dy: dy })
+          });
+        }
+      });
+
+      slot.appendChild(el);
+      layer.appendChild(slot);
+
+      if (autoScroll) {
+        layer.scrollTop = layer.scrollHeight;
+      }
+    }
+
+    function renderAllItems(itemsObj, shouldAutoScroll) {
+      const layer = document.getElementById("scrapbook-layer");
+      const oldScrollTop = layer.scrollTop;
+      layer.innerHTML = "";
+      if (!itemsObj) return;
+
+      Object.keys(itemsObj).forEach((key) => {
+        appendSingleSlot(key, itemsObj[key], false);
+      });
+
+      if (shouldAutoScroll) {
+        layer.scrollTop = layer.scrollHeight;
+      } else {
+        layer.scrollTop = oldScrollTop;
+      }
+    }
+
+    function setYoutubeSong() {
+      const url = document.getElementById("yt-url").value.trim();
+      let videoId = "";
+      if (url.includes("v=")) videoId = url.split("v=")[1].split("&")[0];
+      else if (url.includes("youtu.be/")) videoId = url.split("youtu.be/")[1].split("?")[0];
+
+      if (videoId) {
+        document.getElementById("yt-url").value = "";
+        playYtId(videoId);
+        fetch(`${FIREBASE_URL}/room/yt.json`, {
+          method: "PUT",
+          body: JSON.stringify(videoId)
+        });
+      }
+    }
+
+    function playYtId(vid) {
+      if (!vid) {
+        stopYtLocal();
+        return;
+      }
+      if (vid === currentYtId) return;
+      currentYtId = vid;
+      document.getElementById("music-badge").style.display = "inline-block";
+      document.getElementById("stop-music-btn").style.display = "flex";
+      document.getElementById("yt-iframe").src = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}`;
+    }
+
+    function stopYoutubeSong() {
+      stopYtLocal();
+      fetch(`${FIREBASE_URL}/room/yt.json`, {
+        method: "PUT",
+        body: JSON.stringify("")
+      });
+    }
+
+    function stopYtLocal() {
+      currentYtId = "";
+      document.getElementById("music-badge").style.display = "none";
+      document.getElementById("stop-music-btn").style.display = "none";
+      document.getElementById("yt-iframe").src = "";
+    }
+
+    const canvas = document.getElementById("draw-canvas");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ctx.lineWidth = 4.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#ff2e82";
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    let painting = false;
+
+    function toggleDraw() {
+      isDrawing = !isDrawing;
+      canvas.classList.toggle("drawing-active", isDrawing);
+      document.getElementById("draw-btn").classList.toggle("active", isDrawing);
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      painting = true;
+      canvas.setPointerCapture(e.pointerId);
+      ctx.beginPath();
+      ctx.moveTo(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (!painting || !isDrawing) return;
+      e.preventDefault();
+      ctx.lineTo(e.clientX, e.clientY);
+      ctx.stroke();
+    });
+
+    canvas.addEventListener("pointerup", (e) => {
+      if (!painting) return;
+      painting = false;
+      canvas.releasePointerCapture(e.pointerId);
+    });
+
+    function clearBoard() {
+      document.getElementById("scrapbook-layer").innerHTML = "";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      lastItemsJson = "{}";
+      fetch(`${FIREBASE_URL}/items.json`, { method: "DELETE" });
+    }
+
+    function triggerProposal() {
+      document.getElementById("proposal-modal").classList.add("show");
+      fetch(`${FIREBASE_URL}/room/proposal.json`, {
+        method: "PUT",
+        body: JSON.stringify(true)
+      });
+    }
+
+    function acceptProposal() {
+      document.getElementById("proposal-modal").classList.remove("show");
+      fetch(`${FIREBASE_URL}/room/proposal.json`, {
+        method: "PUT",
+        body: JSON.stringify(false)
+      });
+      triggerFlowerCelebration();
+      fetch(`${FIREBASE_URL}/items.json`, {
+        method: "POST",
+        body: JSON.stringify({
+          type: "text",
+          sender: "Center",
+          text: "SHE SAID YES TO FOREVER AGAIN!! 💍💖🧿",
+          rot: -2,
+          align: "center",
+          dx: 0,
+          dy: 0,
+          color: "#ff1e7a",
+          font: "'Fredoka', sans-serif",
+          size: 30
+        })
+      }).then(() => syncFromFirebase(true));
+    }
+
+    function triggerFlowerCelebration() {
+      const now = Date.now();
+      launchShower();
+      fetch(`${FIREBASE_URL}/room/celebrate.json`, {
+        method: "PUT",
+        body: JSON.stringify(now)
+      });
+    }
+
+    function launchShower() {
+      const icons = ["🌷", "🌹", "🌸", "🌻", "🌺", "💖", "💍", "🥳", "🥰", "🧿", "✨", "🦋"];
+      for (let i = 0; i < 65; i++) {
+        setTimeout(() => {
+          const el = document.createElement("div");
+          el.className = "celebration-drop";
+          el.textContent = icons[Math.floor(Math.random() * icons.length)];
+          el.style.left = (Math.random() * 94 + 2) + "vw";
+          el.style.fontSize = (Math.random() * 18 + 24) + "px";
+          el.style.animationDuration = (Math.random() * 2 + 2.5) + "s";
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 4600);
+        }, i * 45);
+      }
+    }
+
+    function syncFromFirebase(forceScroll = false) {
+      if (isDraggingItem) return;
+
+      fetch(`${FIREBASE_URL}/.json`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data) {
+            if (lastItemsJson !== "{}") {
+              lastItemsJson = "{}";
+              renderAllItems(null, false);
+            }
+            return;
+          }
+
+          const itemsStr = JSON.stringify(data.items || {});
+          if (itemsStr !== lastItemsJson) {
+            const hadItemsBefore = lastItemsJson !== "";
+            const isNewMessage = itemsStr.length > lastItemsJson.length;
+            lastItemsJson = itemsStr;
+            renderAllItems(data.items, forceScroll || !hadItemsBefore || isNewMessage);
+          }
+
+          if (data.room) {
+            if (typeof data.room.bg === "number") {
+              document.body.style.background = backgrounds[data.room.bg];
+            }
+            playYtId(data.room.yt || "");
+
+            if (data.room.proposal === true && !proposalShown) {
+              proposalShown = true;
+              document.getElementById("proposal-modal").classList.add("show");
+            } else if (!data.room.proposal) {
+              proposalShown = false;
+            }
+
+            if (data.room.celebrate && data.room.celebrate > lastCelebrateTime) {
+              if (lastCelebrateTime !== 0) launchShower();
+              lastCelebrateTime = data.room.celebrate;
+            }
+          }
+        })
+        .catch(() => {});
+    }
+
+    setInterval(() => syncFromFirebase(false), 1200);
+  </script>
+</body>
+</html>
