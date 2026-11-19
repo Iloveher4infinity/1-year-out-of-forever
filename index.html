@@ -136,7 +136,7 @@
       overflow: hidden;
     }
 
-    /* Scrollable Daze Scrapbook Feed (Scroll up for history, auto-scroll down on new msg) */
+    /* Scrollable Daze Scrapbook Feed */
     #scrapbook-layer {
       position: fixed;
       top: 58px;
@@ -146,10 +146,10 @@
       z-index: 15;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 20px 16px 50px 16px;
+      padding: 20px 16px 60px 16px;
       display: flex;
       flex-direction: column;
-      gap: 22px;
+      gap: 24px;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -161,7 +161,7 @@
       flex-shrink: 0;
     }
 
-    /* Freeform draggable text/sticker inside its non-overlapping slot */
+    /* Freeform Draggable Text & Sticker */
     .daze-item {
       position: relative;
       cursor: grab;
@@ -187,6 +187,82 @@
       padding: 0;
       filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
     }
+
+    /* Cute Polaroid Scrapbook Photo Card */
+    .daze-photo-wrap {
+      position: relative;
+      cursor: grab;
+      background: #ffffff;
+      padding: 8px 8px 22px 8px;
+      border-radius: 14px;
+      box-shadow: 0 10px 26px rgba(180, 20, 80, 0.25), 0 0 0 2px #fff;
+      touch-action: none;
+      z-index: 17;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .daze-photo-wrap:active {
+      cursor: grabbing;
+      z-index: 26;
+      box-shadow: 0 16px 36px rgba(255, 46, 130, 0.4);
+    }
+
+    .daze-photo-wrap::before {
+      content: "🎀";
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    }
+
+    .daze-photo-img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Floating Mini Toolbar Under Selected Photo (Resize + Rotate) */
+    .photo-controls {
+      display: none;
+      position: absolute;
+      bottom: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.96);
+      padding: 4px 8px;
+      border-radius: 999px;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(216, 27, 96, 0.3);
+      border: 1.5px solid #ff80ab;
+      z-index: 40;
+    }
+
+    .daze-photo-wrap.selected .photo-controls {
+      display: flex;
+    }
+
+    .p-ctrl-btn {
+      border: none;
+      background: #ff2e82;
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .p-ctrl-btn:active { transform: scale(0.88); }
 
     /* Bottom Dock */
     .bottom-dock {
@@ -381,6 +457,9 @@
   <div id="canvas-bg"></div>
   <canvas id="draw-canvas"></canvas>
 
+  <!-- Hidden File Input for Gallery Photos -->
+  <input type="file" id="photo-picker" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;" onchange="handlePhotoUpload(event)" />
+
   <!-- Top Bar with Play & Stop Music Buttons -->
   <div class="top-bar">
     <input type="text" id="yt-url" class="yt-input" placeholder="Paste YouTube song link..." />
@@ -397,7 +476,7 @@
   </div>
 
   <!-- Scrollable Live Scrapbook Stream -->
-  <div id="scrapbook-layer"></div>
+  <div id="scrapbook-layer" onclick="deselectAllPhotos()"></div>
 
   <!-- Bottom Creative Dock -->
   <div class="bottom-dock">
@@ -417,10 +496,10 @@
     </div>
 
     <div class="quick-tools">
+      <button type="button" class="tool-pill" onclick="document.getElementById('photo-picker').click()">📸 Photo</button>
       <button type="button" class="tool-pill" onclick="toggleStickers()">✨ Stickers</button>
       <button type="button" class="tool-pill" id="draw-btn" onclick="toggleDraw()">🖍️ Doodle</button>
       <button type="button" class="tool-pill" onclick="clearBoard()">🧹 Clear</button>
-      <!-- Sumit-Only Celebration Button -->
       <button type="button" id="sumit-yes-btn" class="yes-celebrate-pill" onclick="triggerFlowerCelebration()">🌸 She Said Yes! 🎉</button>
     </div>
 
@@ -512,7 +591,62 @@
       });
     }
 
-    // Zero-lag instant send + background Firebase save
+    // Upload & Compress Gallery Photo (PNG / JPEG) for Instant Live Sync
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const tempCanvas = document.createElement("canvas");
+          const maxDim = 420; // Keeps quality crisp while syncing super fast
+          let w = img.width;
+          let h = img.height;
+          if (w > h && w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+          tempCanvas.width = w;
+          tempCanvas.height = h;
+          const tCtx = tempCanvas.getContext("2d");
+          tCtx.drawImage(img, 0, 0, w, h);
+
+          const compressedDataUrl = tempCanvas.toDataURL("image/jpeg", 0.78);
+          const itemData = {
+            type: "photo",
+            sender: currentUser,
+            src: compressedDataUrl,
+            width: 170,
+            rot: Math.floor(Math.random() * 12) - 6,
+            align: alignments[Math.floor(Math.random() * alignments.length)],
+            dx: 0,
+            dy: 0
+          };
+
+          appendSingleSlot("temp-" + Date.now(), itemData, true);
+          fetch(`${FIREBASE_URL}/items.json`, {
+            method: "POST",
+            body: JSON.stringify(itemData)
+          }).then(() => syncFromFirebase(true));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      event.target.value = "";
+    }
+
+    function deselectAllPhotos() {
+      document.querySelectorAll(".daze-photo-wrap.selected").forEach(el => {
+        el.classList.remove("selected");
+      });
+    }
+
+    // Zero-lag instant send
     function sendDazeText() {
       const input = document.getElementById("msg-input");
       const text = input.value.trim();
@@ -567,12 +701,127 @@
       slot.className = "daze-slot";
       slot.style.justifyContent = data.align || "center";
 
-      const el = document.createElement("div");
-      el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
-
       let dx = data.dx || 0;
       let dy = data.dy || 0;
       let rot = data.rot || 0;
+
+      if (data.type === "photo") {
+        let pWidth = data.width || 170;
+        const wrap = document.createElement("div");
+        wrap.className = "daze-photo-wrap";
+        wrap.style.width = pWidth + "px";
+        wrap.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+
+        const img = document.createElement("img");
+        img.className = "daze-photo-img";
+        img.src = data.src;
+
+        // Mini Toolbar for Big / Small / Rotate
+        const ctrls = document.createElement("div");
+        ctrls.className = "photo-controls";
+
+        const btnSmaller = document.createElement("button");
+        btnSmaller.type = "button";
+        btnSmaller.className = "p-ctrl-btn";
+        btnSmaller.textContent = "➖";
+        btnSmaller.onclick = (e) => {
+          e.stopPropagation();
+          pWidth = Math.max(100, pWidth - 28);
+          wrap.style.width = pWidth + "px";
+          if (!key.startsWith("temp-")) {
+            fetch(`${FIREBASE_URL}/items/${key}.json`, {
+              method: "PATCH",
+              body: JSON.stringify({ width: pWidth })
+            });
+          }
+        };
+
+        const btnBigger = document.createElement("button");
+        btnBigger.type = "button";
+        btnBigger.className = "p-ctrl-btn";
+        btnBigger.textContent = "➕";
+        btnBigger.onclick = (e) => {
+          e.stopPropagation();
+          pWidth = Math.min(290, pWidth + 28);
+          wrap.style.width = pWidth + "px";
+          if (!key.startsWith("temp-")) {
+            fetch(`${FIREBASE_URL}/items/${key}.json`, {
+              method: "PATCH",
+              body: JSON.stringify({ width: pWidth })
+            });
+          }
+        };
+
+        const btnRotate = document.createElement("button");
+        btnRotate.type = "button";
+        btnRotate.className = "p-ctrl-btn";
+        btnRotate.textContent = "🔄";
+        btnRotate.onclick = (e) => {
+          e.stopPropagation();
+          rot = (rot + 12) % 360;
+          if (rot > 180) rot -= 360;
+          wrap.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+          if (!key.startsWith("temp-")) {
+            fetch(`${FIREBASE_URL}/items/${key}.json`, {
+              method: "PATCH",
+              body: JSON.stringify({ rot: rot })
+            });
+          }
+        };
+
+        ctrls.appendChild(btnSmaller);
+        ctrls.appendChild(btnBigger);
+        ctrls.appendChild(btnRotate);
+        wrap.appendChild(img);
+        wrap.appendChild(ctrls);
+
+        // Drag Up/Down/Left/Right + Tap to Select Controls
+        let startX = 0, startY = 0, moved = false;
+        wrap.addEventListener("pointerdown", (e) => {
+          if (e.target.classList.contains("p-ctrl-btn")) return;
+          e.stopPropagation();
+          isDraggingItem = true;
+          moved = false;
+          startX = e.clientX - dx;
+          startY = e.clientY - dy;
+          wrap.setPointerCapture(e.pointerId);
+        });
+
+        wrap.addEventListener("pointermove", (e) => {
+          if (!isDraggingItem) return;
+          const newDx = e.clientX - startX;
+          const newDy = e.clientY - startY;
+          if (Math.abs(newDx - dx) > 4 || Math.abs(newDy - dy) > 4) moved = true;
+          dx = newDx;
+          dy = newDy;
+          wrap.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+        });
+
+        wrap.addEventListener("pointerup", (e) => {
+          if (!isDraggingItem) return;
+          isDraggingItem = false;
+          wrap.releasePointerCapture(e.pointerId);
+
+          if (!moved) {
+            deselectAllPhotos();
+            wrap.classList.add("selected");
+          } else if (!key.startsWith("temp-")) {
+            fetch(`${FIREBASE_URL}/items/${key}.json`, {
+              method: "PATCH",
+              body: JSON.stringify({ dx: dx, dy: dy })
+            });
+          }
+        });
+
+        slot.appendChild(wrap);
+        layer.appendChild(slot);
+        if (autoScroll) layer.scrollTop = layer.scrollHeight;
+        return;
+      }
+
+      // Text & Stickers
+      const el = document.createElement("div");
+      el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
       el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
 
       if (data.type === "text") {
@@ -584,7 +833,6 @@
         el.textContent = data.text;
       }
 
-      // 360-degree Free Dragging (Up, Down, Left, Right) + Tap to Restyle
       let startX = 0, startY = 0, moved = false;
 
       el.addEventListener("pointerdown", (e) => {
@@ -817,7 +1065,7 @@
       }
     }
 
-    // Live Background Sync (Skips re-render while user is dragging so dragging stays buttery smooth)
+    // Live Background Sync
     function syncFromFirebase(forceScroll = false) {
       if (isDraggingItem) return;
 
@@ -866,3 +1114,4 @@
   </script>
 </body>
 </html>
+  
