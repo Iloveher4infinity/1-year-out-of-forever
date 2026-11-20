@@ -184,21 +184,23 @@
     }
 
         /* Transparent Scrapbook Image & Sticker Container */
-    .daze-photo-wrap {
+        .daze-photo-wrap {
       position: relative;
       cursor: grab;
       background: transparent;
+      border: none;
+      outline: none;
+      box-shadow: none;
       padding: 0;
-      border-radius: 12px;
       touch-action: none;
-      z-index: 18;
+      z-index: 20;
       display: inline-flex;
       flex-direction: column;
       align-items: center;
       transform-origin: center center;
       will-change: transform;
       filter: drop-shadow(0 6px 14px rgba(180, 20, 80, 0.22));
-    }
+                                          }
 
     .daze-photo-wrap:active {
       cursor: grabbing;
@@ -214,24 +216,6 @@
       background: transparent;
     }
     
-    .photo-handle {
-      position: absolute;
-      bottom: -10px;
-      right: -10px;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #ff2e82, #ab47bc);
-      color: #fff;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.28);
-      border: 2px solid #fff;
-      touch-action: none;
-      cursor: nwse-resize;
-    }
 
     .bottom-dock {
       position: fixed;
@@ -539,7 +523,8 @@
       };
     }
 
-    function clampPosition(el, slot, rawDx, rawDy) {
+    // Boundary Clamping ONLY for Words/Text
+    function clampTextPosition(el, slot, rawDx, rawDy) {
       const screenW = window.innerWidth;
       const elW = el.offsetWidth || 100;
       const slotW = slot.offsetWidth || screenW;
@@ -592,18 +577,19 @@
           tempCanvas.width = w;
           tempCanvas.height = h;
           tempCanvas.getContext("2d").drawImage(img, 0, 0, w, h);
-  
+
           const isTransparentType = file.type === "image/png" || file.type === "image/webp";
-const compressedDataUrl = isTransparentType
-  ? tempCanvas.toDataURL("image/webp", 0.85)
-  : tempCanvas.toDataURL("image/jpeg", 0.78);
+          const compressedDataUrl = isTransparentType
+            ? tempCanvas.toDataURL("image/webp", 0.85)
+            : tempCanvas.toDataURL("image/jpeg", 0.78);
+
           const itemData = {
             type: "photo",
             sender: currentUser,
             src: compressedDataUrl,
             scale: 1,
             rot: Math.floor(Math.random() * 12) - 6,
-            align: alignments[Math.floor(Math.random() * alignments.length)],
+            align: "center",
             dx: 0,
             dy: 0
           };
@@ -698,6 +684,7 @@ const compressedDataUrl = isTransparentType
       let dy = Number(data.dy) || 0;
       let rot = Number(data.rot) || 0;
 
+      // PHOTOS: No button, no border/clamping, move/pinch/rotate freely anywhere!
       if (data.type === "photo") {
         let scale = Number(data.scale) || 1;
         const wrap = document.createElement("div");
@@ -712,13 +699,7 @@ const compressedDataUrl = isTransparentType
         const img = document.createElement("img");
         img.className = "daze-photo-img";
         img.src = data.src;
-
-        const handle = document.createElement("div");
-        handle.className = "photo-handle";
-        handle.textContent = "🔄";
-
         wrap.appendChild(img);
-        wrap.appendChild(handle);
 
         const savePhotoState = () => {
           ignoreSyncUntil = Date.now() + 2500;
@@ -748,7 +729,6 @@ const compressedDataUrl = isTransparentType
         let midStartX = 0, midStartY = 0, baseDx = dx, baseDy = dy;
 
         wrap.addEventListener("touchstart", (e) => {
-          if (e.target === handle) return;
           e.stopPropagation();
           isDraggingItem = true;
 
@@ -775,9 +755,8 @@ const compressedDataUrl = isTransparentType
           e.stopPropagation();
 
           if (e.touches.length === 1 && gestureMode === "drag") {
-            const clamped = clampPosition(wrap, slot, e.touches[0].clientX - startDragX, e.touches[0].clientY - startDragY);
-            dx = clamped.dx;
-            dy = clamped.dy;
+            dx = e.touches[0].clientX - startDragX;
+            dy = e.touches[0].clientY - startDragY;
             updatePhotoTransform();
           } else if (e.touches.length >= 2) {
             if (gestureMode !== "pinch") {
@@ -797,12 +776,11 @@ const compressedDataUrl = isTransparentType
             const curMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
             if (startDist > 0) {
-              scale = Math.max(0.45, Math.min(2.6, baseScale * (curDist / startDist)));
+              scale = Math.max(0.35, Math.min(3.2, baseScale * (curDist / startDist)));
             }
             rot = baseRot + (curAngle - startAngle);
-            const clamped = clampPosition(wrap, slot, baseDx + (curMidX - midStartX), baseDy + (curMidY - midStartY));
-            dx = clamped.dx;
-            dy = clamped.dy;
+            dx = baseDx + (curMidX - midStartX);
+            dy = baseDy + (curMidY - midStartY);
             updatePhotoTransform();
           }
         }, { passive: false });
@@ -820,55 +798,13 @@ const compressedDataUrl = isTransparentType
           }
         });
 
-        let handlingCorner = false;
-        let centerX = 0, centerY = 0, handleStartAngle = 0, handleStartDist = 0;
-
-        handle.addEventListener("touchstart", (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          handlingCorner = true;
-          isDraggingItem = true;
-
-          const rect = wrap.getBoundingClientRect();
-          centerX = rect.left + rect.width / 2;
-          centerY = rect.top + rect.height / 2;
-          const t = e.touches[0];
-          handleStartAngle = (Math.atan2(t.clientY - centerY, t.clientX - centerX) * 180) / Math.PI;
-          handleStartDist = Math.hypot(t.clientX - centerX, t.clientY - centerY);
-          baseRot = rot;
-          baseScale = scale;
-        }, { passive: false });
-
-        handle.addEventListener("touchmove", (e) => {
-          if (!handlingCorner) return;
-          e.stopPropagation();
-          e.preventDefault();
-
-          const t = e.touches[0];
-          const curAngle = (Math.atan2(t.clientY - centerY, t.clientX - centerX) * 180) / Math.PI;
-          const curDist = Math.hypot(t.clientX - centerX, t.clientY - centerY);
-
-          rot = baseRot + (curAngle - handleStartAngle);
-          if (handleStartDist > 10) {
-            scale = Math.max(0.45, Math.min(2.6, baseScale * (curDist / handleStartDist)));
-          }
-          updatePhotoTransform();
-        }, { passive: false });
-
-        handle.addEventListener("touchend", () => {
-          if (!handlingCorner) return;
-          handlingCorner = false;
-          isDraggingItem = false;
-          savePhotoState();
-        });
-
         slot.appendChild(wrap);
         layer.appendChild(slot);
         if (autoScroll) layer.scrollTop = layer.scrollHeight;
         return;
       }
 
-      // Text & Stickers (Smooth 1:1 Touch Dragging with Screen Clamping)
+      // WORDS & STICKERS (Clamped within screen edges)
       const el = document.createElement("div");
       el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
       el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
@@ -903,7 +839,7 @@ const compressedDataUrl = isTransparentType
         const rawDy = e.touches[0].clientY - startY;
         if (Math.abs(rawDx - dx) > 5 || Math.abs(rawDy - dy) > 5) moved = true;
 
-        const clamped = clampPosition(el, slot, rawDx, rawDy);
+        const clamped = clampTextPosition(el, slot, rawDx, rawDy);
         dx = clamped.dx;
         dy = clamped.dy;
         el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
@@ -1071,7 +1007,7 @@ const compressedDataUrl = isTransparentType
     function triggerProposal() {
       document.getElementById("proposal-modal").classList.add("show");
       fetch(FIREBASE_URL + "/room/proposal.json", {
-     method: "PUT",
+        method: "PUT",
         body: JSON.stringify(true)
       });
     }
@@ -1125,7 +1061,7 @@ const compressedDataUrl = isTransparentType
       }
     }
 
-    function syncFromFirebase(forceScroll) {
+  function syncFromFirebase(forceScroll) {
       if (isDraggingItem || Date.now() < ignoreSyncUntil) return;
 
       fetch(FIREBASE_URL + "/.json")
