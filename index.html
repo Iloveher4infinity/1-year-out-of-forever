@@ -489,14 +489,16 @@
     </div>
     </div>
 
-    <script>
+  <script>
     const FIREBASE_URL = "https://rupsanajii-default-rtdb.firebaseio.com";
 
     let currentUser = "Sumit";
     let bgIndex = 0;
     let isDrawing = false;
     let isDraggingItem = false;
+    let ignoreSyncUntil = 0;
     let lastItemsJson = "";
+    let cachedItems = {};
     let currentYtId = "";
     let proposalShown = false;
     let lastCelebrateTime = 0;
@@ -547,6 +549,24 @@
       };
     }
 
+    function clampPosition(el, slot, rawDx, rawDy) {
+      const screenW = window.innerWidth;
+      const elW = el.offsetWidth || 100;
+      const slotW = slot.offsetWidth || screenW;
+      const align = slot.style.justifyContent || "center";
+
+      let baseLeft = (slotW - elW) / 2;
+      if (align === "flex-start") baseLeft = 16;
+      else if (align === "flex-end") baseLeft = slotW - elW - 16;
+
+      const minDx = 12 - baseLeft;
+      const maxDx = (screenW - elW - 12) - baseLeft;
+      const safeDx = Math.max(minDx, Math.min(maxDx, rawDx));
+      const safeDy = Math.max(-180, Math.min(180, rawDy));
+
+      return { dx: Math.round(safeDx), dy: Math.round(safeDy) };
+    }
+
     function toggleStickers() {
       document.getElementById("sticker-drawer").classList.toggle("open");
     }
@@ -595,11 +615,15 @@
             dy: 0
           };
 
+          ignoreSyncUntil = Date.now() + 2000;
           appendSingleSlot("temp-" + Date.now(), itemData, true);
           fetch(FIREBASE_URL + "/items.json", {
             method: "POST",
             body: JSON.stringify(itemData)
-          }).then(() => syncFromFirebase(true));
+          }).then(() => {
+            ignoreSyncUntil = 0;
+            syncFromFirebase(true);
+          });
         };
         img.src = e.target.result;
       };
@@ -627,12 +651,16 @@
       };
 
       input.value = "";
+      ignoreSyncUntil = Date.now() + 2000;
       appendSingleSlot("temp-" + Date.now(), itemData, true);
 
       fetch(FIREBASE_URL + "/items.json", {
         method: "POST",
         body: JSON.stringify(itemData)
-      }).then(() => syncFromFirebase(true));
+      }).then(() => {
+        ignoreSyncUntil = 0;
+        syncFromFirebase(true);
+      });
     }
 
     function dropSticker(emoji) {
@@ -647,12 +675,16 @@
       };
 
       toggleStickers();
+      ignoreSyncUntil = Date.now() + 2000;
       appendSingleSlot("temp-" + Date.now(), itemData, true);
 
       fetch(FIREBASE_URL + "/items.json", {
         method: "POST",
         body: JSON.stringify(itemData)
-      }).then(() => syncFromFirebase(true));
+      }).then(() => {
+        ignoreSyncUntil = 0;
+        syncFromFirebase(true);
+      });
     }
 
     function getTouchDistance(t1, t2) {
@@ -669,12 +701,12 @@
       slot.className = "daze-slot";
       slot.style.justifyContent = data.align || "center";
 
-      let dx = data.dx || 0;
-      let dy = data.dy || 0;
-      let rot = data.rot || 0;
+      let dx = Number(data.dx) || 0;
+      let dy = Number(data.dy) || 0;
+      let rot = Number(data.rot) || 0;
 
       if (data.type === "photo") {
-        let scale = data.scale || 1;
+        let scale = Number(data.scale) || 1;
         const wrap = document.createElement("div");
         wrap.className = "daze-photo-wrap";
         wrap.style.width = "165px";
@@ -696,14 +728,21 @@
         wrap.appendChild(handle);
 
         const savePhotoState = () => {
-          if (!key.startsWith("temp-")) {
+          ignoreSyncUntil = Date.now() + 2500;
+          if (!key.startsWith("temp-") && cachedItems[key]) {
+            cachedItems[key].dx = Math.round(dx);
+            cachedItems[key].dy = Math.round(dy);
+            cachedItems[key].rot = Math.round(rot * 10) / 10;
+            cachedItems[key].scale = Math.round(scale * 100) / 100;
+            lastItemsJson = JSON.stringify(cachedItems);
+
             fetch(FIREBASE_URL + "/items/" + key + ".json", {
               method: "PATCH",
               body: JSON.stringify({
-                dx: Math.round(dx),
-                dy: Math.round(dy),
-                rot: Math.round(rot * 10) / 10,
-                scale: Math.round(scale * 100) / 100
+                dx: cachedItems[key].dx,
+                dy: cachedItems[key].dy,
+                rot: cachedItems[key].rot,
+                scale: cachedItems[key].scale
               })
             });
           }
@@ -743,8 +782,9 @@
           e.stopPropagation();
 
           if (e.touches.length === 1 && gestureMode === "drag") {
-            dx = e.touches[0].clientX - startDragX;
-            dy = e.touches[0].clientY - startDragY;
+            const clamped = clampPosition(wrap, slot, e.touches[0].clientX - startDragX, e.touches[0].clientY - startDragY);
+            dx = clamped.dx;
+            dy = clamped.dy;
             updatePhotoTransform();
           } else if (e.touches.length >= 2) {
             if (gestureMode !== "pinch") {
@@ -767,8 +807,9 @@
               scale = Math.max(0.45, Math.min(2.6, baseScale * (curDist / startDist)));
             }
             rot = baseRot + (curAngle - startAngle);
-            dx = baseDx + (curMidX - midStartX);
-            dy = baseDy + (curMidY - midStartY);
+            const clamped = clampPosition(wrap, slot, baseDx + (curMidX - midStartX), baseDy + (curMidY - midStartY));
+            dx = clamped.dx;
+            dy = clamped.dy;
             updatePhotoTransform();
           }
         }, { passive: false });
@@ -789,42 +830,42 @@
         let handlingCorner = false;
         let centerX = 0, centerY = 0, handleStartAngle = 0, handleStartDist = 0;
 
-        handle.addEventListener("pointerdown", (e) => {
+        handle.addEventListener("touchstart", (e) => {
           e.stopPropagation();
           e.preventDefault();
           handlingCorner = true;
           isDraggingItem = true;
-          handle.setPointerCapture(e.pointerId);
 
           const rect = wrap.getBoundingClientRect();
           centerX = rect.left + rect.width / 2;
           centerY = rect.top + rect.height / 2;
-          handleStartAngle = (Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180) / Math.PI;
-          handleStartDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+          const t = e.touches[0];
+          handleStartAngle = (Math.atan2(t.clientY - centerY, t.clientX - centerX) * 180) / Math.PI;
+          handleStartDist = Math.hypot(t.clientX - centerX, t.clientY - centerY);
           baseRot = rot;
           baseScale = scale;
-        });
+        }, { passive: false });
 
-        handle.addEventListener("pointermove", (e) => {
+        handle.addEventListener("touchmove", (e) => {
           if (!handlingCorner) return;
           e.stopPropagation();
           e.preventDefault();
 
-          const curAngle = (Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180) / Math.PI;
-          const curDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+          const t = e.touches[0];
+          const curAngle = (Math.atan2(t.clientY - centerY, t.clientX - centerX) * 180) / Math.PI;
+          const curDist = Math.hypot(t.clientX - centerX, t.clientY - centerY);
 
           rot = baseRot + (curAngle - handleStartAngle);
           if (handleStartDist > 10) {
             scale = Math.max(0.45, Math.min(2.6, baseScale * (curDist / handleStartDist)));
           }
           updatePhotoTransform();
-        });
+        }, { passive: false });
 
-        handle.addEventListener("pointerup", (e) => {
+        handle.addEventListener("touchend", () => {
           if (!handlingCorner) return;
           handlingCorner = false;
           isDraggingItem = false;
-          handle.releasePointerCapture(e.pointerId);
           savePhotoState();
         });
 
@@ -834,6 +875,7 @@
         return;
       }
 
+      // Text & Stickers (Smooth 1:1 Touch Dragging with Screen Clamping)
       const el = document.createElement("div");
       el.className = "daze-item" + (data.type === "sticker" ? " sticker-only" : "");
       el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
@@ -847,31 +889,39 @@
         el.textContent = data.text;
       }
 
-      let startX = 0, startY = 0, moved = false;
+      let startX = 0, startY = 0, moved = false, activeTouch = false;
 
-      el.addEventListener("pointerdown", (e) => {
+      el.addEventListener("touchstart", (e) => {
+        if (e.touches.length !== 1) return;
         e.stopPropagation();
+        activeTouch = true;
         isDraggingItem = true;
         moved = false;
-        startX = e.clientX - dx;
-        startY = e.clientY - dy;
-        el.setPointerCapture(e.pointerId);
-      });
+        startX = e.touches[0].clientX - dx;
+        startY = e.touches[0].clientY - dy;
+      }, { passive: false });
 
-      el.addEventListener("pointermove", (e) => {
-        if (!isDraggingItem) return;
-        const newDx = e.clientX - startX;
-        const newDy = e.clientY - startY;
-        if (Math.abs(newDx - dx) > 4 || Math.abs(newDy - dy) > 4) moved = true;
-        dx = newDx;
-        dy = newDy;
+      el.addEventListener("touchmove", (e) => {
+        if (!activeTouch || e.touches.length !== 1) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rawDx = e.touches[0].clientX - startX;
+        const rawDy = e.touches[0].clientY - startY;
+        if (Math.abs(rawDx - dx) > 5 || Math.abs(rawDy - dy) > 5) moved = true;
+
+        const clamped = clampPosition(el, slot, rawDx, rawDy);
+        dx = clamped.dx;
+        dy = clamped.dy;
         el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
-      });
+      }, { passive: false });
 
-      el.addEventListener("pointerup", (e) => {
-        if (!isDraggingItem) return;
+      el.addEventListener("touchend", (e) => {
+        if (!activeTouch) return;
+        e.stopPropagation();
+        activeTouch = false;
         isDraggingItem = false;
-        el.releasePointerCapture(e.pointerId);
+        ignoreSyncUntil = Date.now() + 2500;
 
         if (!moved && data.type === "text") {
           const newSt = getRandomStyle();
@@ -881,7 +931,13 @@
           el.style.fontSize = newSt.size + "px";
           el.style.transform = "translate(" + dx + "px, " + dy + "px) rotate(" + rot + "deg)";
 
-          if (!key.startsWith("temp-")) {
+          if (!key.startsWith("temp-") && cachedItems[key]) {
+            cachedItems[key].color = newSt.color;
+            cachedItems[key].font = newSt.font;
+            cachedItems[key].size = newSt.size;
+            cachedItems[key].rot = rot;
+            lastItemsJson = JSON.stringify(cachedItems);
+
             fetch(FIREBASE_URL + "/items/" + key + ".json", {
               method: "PATCH",
               body: JSON.stringify({
@@ -892,7 +948,11 @@
               })
             });
           }
-        } else if (moved && !key.startsWith("temp-")) {
+        } else if (moved && !key.startsWith("temp-") && cachedItems[key]) {
+          cachedItems[key].dx = dx;
+          cachedItems[key].dy = dy;
+          lastItemsJson = JSON.stringify(cachedItems);
+
           fetch(FIREBASE_URL + "/items/" + key + ".json", {
             method: "PATCH",
             body: JSON.stringify({ dx: dx, dy: dy })
@@ -910,6 +970,7 @@
       const layer = document.getElementById("scrapbook-layer");
       const oldScrollTop = layer.scrollTop;
       layer.innerHTML = "";
+      cachedItems = itemsObj || {};
       if (!itemsObj) return;
 
       Object.keys(itemsObj).forEach((key) => {
@@ -984,39 +1045,40 @@
       document.getElementById("draw-btn").classList.toggle("active", isDrawing);
     }
 
-    canvas.addEventListener("pointerdown", (e) => {
+    canvas.addEventListener("touchstart", (e) => {
       if (!isDrawing) return;
       e.preventDefault();
       painting = true;
-      canvas.setPointerCapture(e.pointerId);
+      const t = e.touches[0];
       ctx.beginPath();
-      ctx.moveTo(e.clientX, e.clientY);
-    });
+      ctx.moveTo(t.clientX, t.clientY);
+    }, { passive: false });
 
-    canvas.addEventListener("pointermove", (e) => {
+    canvas.addEventListener("touchmove", (e) => {
       if (!painting || !isDrawing) return;
       e.preventDefault();
-      ctx.lineTo(e.clientX, e.clientY);
+      const t = e.touches[0];
+      ctx.lineTo(t.clientX, t.clientY);
       ctx.stroke();
-    });
+    }, { passive: false });
 
-    canvas.addEventListener("pointerup", (e) => {
-      if (!painting) return;
+    canvas.addEventListener("touchend", () => {
       painting = false;
-      canvas.releasePointerCapture(e.pointerId);
     });
 
     function clearBoard() {
       document.getElementById("scrapbook-layer").innerHTML = "";
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      cachedItems = {};
       lastItemsJson = "{}";
+      ignoreSyncUntil = Date.now() + 2000;
       fetch(FIREBASE_URL + "/items.json", { method: "DELETE" });
     }
 
     function triggerProposal() {
       document.getElementById("proposal-modal").classList.add("show");
       fetch(FIREBASE_URL + "/room/proposal.json", {
-        method: "PUT",
+     method: "PUT",
         body: JSON.stringify(true)
       });
     }
@@ -1071,11 +1133,13 @@
     }
 
     function syncFromFirebase(forceScroll) {
-      if (isDraggingItem) return;
+      if (isDraggingItem || Date.now() < ignoreSyncUntil) return;
 
       fetch(FIREBASE_URL + "/.json")
         .then(res => res.json())
         .then(data => {
+          if (isDraggingItem || Date.now() < ignoreSyncUntil) return;
+
           if (!data) {
             if (lastItemsJson !== "{}") {
               lastItemsJson = "{}";
