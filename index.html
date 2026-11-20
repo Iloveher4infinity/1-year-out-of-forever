@@ -183,13 +183,13 @@
       filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
     }
 
+        /* Transparent Scrapbook Image & Sticker Container */
     .daze-photo-wrap {
       position: relative;
       cursor: grab;
-      background: #ffffff;
-      padding: 8px 8px 20px 8px;
-      border-radius: 14px;
-      box-shadow: 0 10px 26px rgba(180, 20, 80, 0.25), 0 0 0 2px #fff;
+      background: transparent;
+      padding: 0;
+      border-radius: 12px;
       touch-action: none;
       z-index: 18;
       display: inline-flex;
@@ -197,33 +197,23 @@
       align-items: center;
       transform-origin: center center;
       will-change: transform;
+      filter: drop-shadow(0 6px 14px rgba(180, 20, 80, 0.22));
     }
 
     .daze-photo-wrap:active {
       cursor: grabbing;
       z-index: 28;
-      box-shadow: 0 16px 36px rgba(255, 46, 130, 0.42);
-    }
-
-    .daze-photo-wrap::before {
-      content: "🎀";
-      position: absolute;
-      top: -14px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 20px;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-      pointer-events: none;
     }
 
     .daze-photo-img {
       width: 100%;
       height: auto;
-      border-radius: 8px;
+      border-radius: 10px;
       display: block;
       pointer-events: none;
+      background: transparent;
     }
-
+    
     .photo-handle {
       position: absolute;
       bottom: -10px;
@@ -602,8 +592,11 @@
           tempCanvas.width = w;
           tempCanvas.height = h;
           tempCanvas.getContext("2d").drawImage(img, 0, 0, w, h);
-
-          const compressedDataUrl = tempCanvas.toDataURL("image/jpeg", 0.78);
+  
+          const isTransparentType = file.type === "image/png" || file.type === "image/webp";
+const compressedDataUrl = isTransparentType
+  ? tempCanvas.toDataURL("image/webp", 0.85)
+  : tempCanvas.toDataURL("image/jpeg", 0.78);
           const itemData = {
             type: "photo",
             sender: currentUser,
